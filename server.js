@@ -12,10 +12,12 @@ let lastSent = {};
 
 // 🔐 Gmail transporter
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
     auth: {
         user: "prabhukimar997@gmail.com",
-        pass: "naaywhujgkbkmqhk" // ⚠️ बाद में नया app password use करना
+        pass: "naaywhujgkbkmqhk"
     }
 });
 
