@@ -1,26 +1,27 @@
+
+
 const express = require("express");
 const nodemailer = require("nodemailer");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
 // OTP store
 let otpStore = {};
 let lastSent = {};
 
-// Gmail transporter
+// 🔐 Gmail transporter
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
         user: "prabhukimar997@gmail.com",
-        pass: "naaywhujgkbkmqhk" // 👈 yaha apna app password daalo
+        pass: "naaywhujgkbkmqhk" // 👈 yaha apna real app password daalo
     }
 });
 
-// 🔥 Send OTP
+// 📩 Send OTP
 app.post("/send-otp", async (req, res) => {
     const { email } = req.body;
 
@@ -28,7 +29,7 @@ app.post("/send-otp", async (req, res) => {
         return res.send({ success: false, message: "Email required" });
     }
 
-    // Spam protection (1 min)
+    // ⛔ 1 minute limit
     if (lastSent[email] && Date.now() - lastSent[email] < 60000) {
         return res.send({ success: false, message: "Wait 1 minute" });
     }
@@ -37,7 +38,7 @@ app.post("/send-otp", async (req, res) => {
 
     otpStore[email] = {
         otp: otp,
-        expires: Date.now() + 5 * 60 * 1000
+        expires: Date.now() + 5 * 60 * 1000 // 5 min
     };
 
     lastSent[email] = Date.now();
@@ -60,7 +61,7 @@ app.post("/send-otp", async (req, res) => {
         await transporter.sendMail(mailOptions);
         res.send({ success: true, message: "OTP sent" });
     } catch (err) {
-        console.log(err);
+        console.log("ERROR:", err);
         res.send({ success: false, message: "Email failed" });
     }
 });
@@ -88,7 +89,9 @@ app.post("/verify-otp", (req, res) => {
     }
 });
 
-// Start server
-app.listen(3000, () => {
-    console.log("🚀 Server running on http://localhost:3000");
+// 🚀 Server start
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log("🚀 Server running on port " + PORT);
 });
