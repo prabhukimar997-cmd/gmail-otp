@@ -17,11 +17,11 @@ const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
         user: "prabhukimar997@gmail.com",
-        pass: "naaywhujgkbkmqhk" // 👈 yaha apna real app password daalo
+        pass: "naaywhujgkbkmqhk" // ⚠️ बाद में नया app password बना लेना
     }
 });
 
-// 📩 Send OTP
+// 📩 Send OTP (POST)
 app.post("/send-otp", async (req, res) => {
     const { email } = req.body;
 
@@ -29,7 +29,6 @@ app.post("/send-otp", async (req, res) => {
         return res.send({ success: false, message: "Email required" });
     }
 
-    // ⛔ 1 minute limit
     if (lastSent[email] && Date.now() - lastSent[email] < 60000) {
         return res.send({ success: false, message: "Wait 1 minute" });
     }
@@ -38,31 +37,46 @@ app.post("/send-otp", async (req, res) => {
 
     otpStore[email] = {
         otp: otp,
-        expires: Date.now() + 5 * 60 * 1000 // 5 min
+        expires: Date.now() + 5 * 60 * 1000
     };
 
     lastSent[email] = Date.now();
 
-    const mailOptions = {
-        from: "prabhukimar997@gmail.com",
-        to: email,
-        subject: "Your OTP Code",
-        html: `
-        <div style="font-family:sans-serif;text-align:center;">
-            <h2>🔐 OTP Verification</h2>
-            <p>Your OTP is:</p>
-            <h1 style="color:blue;">${otp}</h1>
-            <p>Valid for 5 minutes</p>
-        </div>
-        `
-    };
+    try {
+        await transporter.sendMail({
+            from: "prabhukimar997@gmail.com",
+            to: email,
+            subject: "Your OTP Code",
+            html: `<h2>Your OTP is: ${otp}</h2>`
+        });
+
+        res.send({ success: true, otp }); // testing ke liye otp bhi bhej raha
+    } catch (err) {
+        console.log(err);
+        res.send({ success: false, message: "Email failed" });
+    }
+});
+
+// 🌐 Send OTP (GET - browser ke liye)
+app.get("/send-otp", async (req, res) => {
+    const email = req.query.email;
+
+    if (!email) return res.send("Email required");
+
+    const otp = Math.floor(100000 + Math.random() * 900000);
 
     try {
-        await transporter.sendMail(mailOptions);
-        res.send({ success: true, message: "OTP sent" });
+        await transporter.sendMail({
+            from: "prabhukimar997@gmail.com",
+            to: email,
+            subject: "OTP Code",
+            text: `Your OTP is ${otp}`
+        });
+
+        res.send("OTP sent successfully");
     } catch (err) {
-        console.log("ERROR:", err);
-        res.send({ success: false, message: "Email failed" });
+        console.log(err);
+        res.send("Email failed");
     }
 });
 
@@ -95,3 +109,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log("🚀 Server running on port " + PORT);
 });
+
+
+
