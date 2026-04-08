@@ -1,5 +1,3 @@
-
-
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
@@ -17,11 +15,16 @@ const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
         user: "prabhukimar997@gmail.com",
-        pass: "naaywhujgkbkmqhk" // ⚠️ बाद में नया app password बना लेना
+        pass: "naaywhujgkbkmqhk" // ⚠️ बाद में नया app password use करना
     }
 });
 
-// 📩 Send OTP (POST)
+// 🏠 Home route (error fix)
+app.get("/", (req, res) => {
+    res.send("🔥 OTP Server Running ✅");
+});
+
+// 📩 Send OTP (POST - API)
 app.post("/send-otp", async (req, res) => {
     const { email } = req.body;
 
@@ -50,14 +53,14 @@ app.post("/send-otp", async (req, res) => {
             html: `<h2>Your OTP is: ${otp}</h2>`
         });
 
-        res.send({ success: true, otp }); // testing ke liye otp bhi bhej raha
+        res.send({ success: true, message: "OTP sent", otp }); // testing
     } catch (err) {
         console.log(err);
         res.send({ success: false, message: "Email failed" });
     }
 });
 
-// 🌐 Send OTP (GET - browser ke liye)
+// 🌐 Send OTP (GET - browser)
 app.get("/send-otp", async (req, res) => {
     const email = req.query.email;
 
@@ -109,6 +112,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log("🚀 Server running on port " + PORT);
 });
-
-
-
